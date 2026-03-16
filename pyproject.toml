@@ -1,0 +1,47 @@
+[build-system]
+requires = ["hatchling"]
+build-backend = "hatchling.build"
+
+[project]
+name = "itemshop"
+version = "0.0.1"
+description = "Django-based item shop project"
+readme = "README.md"
+license = "MIT"
+authors = [
+    { name = "ItemShop Team" },
+]
+requires-python = ">=3.12"
+dependencies = [
+    "django>=4.2,<5.0",
+]
+
+[dependency-groups]
+dev = [
+    "ruff>=0.15.6",
+]
+
+[tool.ruff]
+line-length = 120
+target-version = "py312"
+src = ["src"]
+extend-exclude = ["**/migrations/*"]
+
+[tool.ruff.lint]
+select = ["E", "W", "F", "I", "B", "UP"]
+
+[tool.ruff.format]
+quote-style = "double"
+indent-style = "space"
+
+[tool.uv]
+resolution = "highest"
+
+[tool.pytest.ini_options]
+DJANGO_SETTINGS_MODULE = "config.settings"
+pythonpath = ["src"]
+testpaths = ["src"]
+addopts = "-q --strict-markers --disable-warnings"
+
+[tool.hatch.build.targets.wheel]
+packages = ["src/config", "src/apps"]
