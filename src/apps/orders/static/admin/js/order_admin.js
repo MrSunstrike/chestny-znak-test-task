@@ -1,53 +1,52 @@
 (function () {
-    function getFieldRow(fieldName) {
-        return document.querySelector(".form-row.field-" + fieldName + ", .field-" + fieldName);
-    }
+    "use strict";
 
-    function setVisible(row, isVisible) {
-        if (!row) {
+    function updateFieldsVisibility() {
+        const volumeTypeField = document.getElementById("id_volume_type");
+        const descriptionField = document.getElementById("id_description");
+        const documentField = document.getElementById("id_document");
+        const quantityField = document.getElementById("id_quantity");
+
+        if (!volumeTypeField) {
             return;
         }
 
-        row.style.display = isVisible ? "" : "none";
+        const isSingle = volumeTypeField.value === "single";
 
-        row.querySelectorAll("input, select, textarea").forEach(function (input) {
-            input.disabled = !isVisible;
-        });
-    }
-
-    function updateVolumeFields() {
-        var volumeTypeElement = document.getElementById("id_volume_type");
-        if (!volumeTypeElement) {
-            return;
+        if (descriptionField) {
+            const descriptionRow = descriptionField.closest(".form-row");
+            if (descriptionRow) {
+                descriptionRow.style.display = isSingle ? "" : "none";
+            }
         }
 
-        var volumeType = volumeTypeElement.value;
-        var descriptionRow = getFieldRow("description");
-        var documentRow = getFieldRow("document");
-        var quantityRow = getFieldRow("quantity");
+        const isMultiple = volumeTypeField.value === "multiple";
 
-        setVisible(descriptionRow, false);
-        setVisible(documentRow, false);
-        setVisible(quantityRow, false);
-
-        if (volumeType === "single") {
-            setVisible(descriptionRow, true);
-            return;
+        if (documentField) {
+            const documentRow = documentField.closest(".form-row");
+            if (documentRow) {
+                documentRow.style.display = isMultiple ? "" : "none";
+            }
         }
 
-        if (volumeType === "multiple") {
-            setVisible(documentRow, true);
-            setVisible(quantityRow, true);
+        if (quantityField) {
+            const quantityRow = quantityField.closest(".form-row");
+            if (quantityRow) {
+                quantityRow.style.display = isMultiple ? "" : "none";
+            }
         }
     }
 
-    document.addEventListener("DOMContentLoaded", function () {
-        var volumeTypeElement = document.getElementById("id_volume_type");
-        if (!volumeTypeElement) {
-            return;
-        }
+    function init() {
+        const volumeTypeField = document.getElementById("id_volume_type");
+        if (!volumeTypeField) return;
+        updateFieldsVisibility();
+        volumeTypeField.addEventListener("change", updateFieldsVisibility);
+    }
 
-        updateVolumeFields();
-        volumeTypeElement.addEventListener("change", updateVolumeFields);
-    });
+    if (document.readyState === "loading") {
+        document.addEventListener("DOMContentLoaded", init);
+    } else {
+        init();
+    }
 })();

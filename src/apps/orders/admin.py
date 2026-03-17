@@ -1,11 +1,14 @@
 from django.contrib import admin
 from django.db.models import Count, OuterRef, Subquery
+from django.utils import timezone
 
+from apps.orders.forms import OrderForm
 from apps.orders.models import Order
 
 
 @admin.register(Order)
 class OrderAdmin(admin.ModelAdmin):
+    form = OrderForm
     list_display = (
         "id",
         "name",
@@ -115,6 +118,15 @@ class OrderAdmin(admin.ModelAdmin):
                 Order.objects.filter(user=OuterRef("pk")).annotate(count=Count("id")).values("count")[:1]
             ),
         )
+
+    def save_model(self, request, obj, form, change):
+        if obj.status == Order.OrderStatus.READY and obj.ready_at is None:
+            obj.ready_at = timezone.now()
+
+        if obj.status != Order.OrderStatus.READY:
+            obj.ready_at = None
+
+        super().save_model(request, obj, form, change)
 
     class Media:
         js = ("admin/js/order_admin.js",)

@@ -1,9 +1,5 @@
-from __future__ import annotations
-
 from django.contrib.auth import get_user_model
-from django.core.exceptions import ValidationError
 from django.db import models
-from django.utils import timezone
 
 from apps.common.models import TimeStampedModel
 from config.constants import ENUM_TEXT_MAX_LENGTH, LONG_TEXT_MAX_LENGTH, SHORT_TEXT_MAX_LENGTH
@@ -73,45 +69,3 @@ class Order(TimeStampedModel):
 
     def __str__(self) -> str:
         return f"Заказ #{self.pk} — {self.name}"
-
-    def clean(self) -> None:
-        errors: dict[str, str] = {}
-
-        description = (self.description or "").strip()
-
-        if self.volume_type == self.OrderVolumeType.SINGLE:
-            if not description:
-                errors["description"] = "Для единичного заказа необходимо указать описание."
-
-            if self.document:
-                errors["document"] = "Для единичного заказа документ не требуется."
-
-            if self.quantity != 1:
-                errors["quantity"] = "Для единичного заказа количество должно быть равно 1."
-
-        elif self.volume_type == self.OrderVolumeType.MULTIPLE:
-            if description:
-                errors["description"] = "Для множественного заказа описание не должно быть указано."
-
-            if not self.document:
-                errors["document"] = "Для множественного заказа необходимо прикрепить документ."
-
-            if self.quantity is None or self.quantity <= 1:
-                errors["quantity"] = "Для множественного заказа количество должно быть больше 1."
-
-        else:
-            errors["volume_type"] = "Некорректный тип объема заказа."
-
-        if errors:
-            raise ValidationError(errors)
-
-    def save(self, *args, **kwargs) -> None:
-        self.full_clean()
-
-        if self.status == self.OrderStatus.READY and self.ready_at is None:
-            self.ready_at = timezone.now()
-
-        if self.status != self.OrderStatus.READY:
-            self.ready_at = None
-
-        super().save(*args, **kwargs)
