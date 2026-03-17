@@ -20,8 +20,10 @@ class OrderAdmin(admin.ModelAdmin):
         "id",
         "name",
         "description",
-        "user__username",
+        "user__first_name",
+        "user__last_name",
         "user__email",
+        "user__username",
     )
     list_filter = (
         "status",
@@ -67,7 +69,28 @@ class OrderAdmin(admin.ModelAdmin):
         ),
         ("Статус заказа", {"fields": (("status", "ready_at"),)}),
     )
-    list_select_related = ("user",)
+
+    def get_fieldsets(self, request, obj=None):
+        if obj:
+            return super().get_fieldsets(request, obj)
+
+        fieldsets_for_create = (
+            (
+                "Создание заявки",
+                {
+                    "fields": (
+                        "user",
+                        "name",
+                        "volume_type",
+                        "quantity",
+                        "description",
+                        "document",
+                    )
+                },
+            ),
+        )
+
+        return fieldsets_for_create
 
     @admin.display(description="Имя")
     def user_first_name(self, obj):
@@ -86,9 +109,12 @@ class OrderAdmin(admin.ModelAdmin):
         return obj.orders_count
 
     def get_queryset(self, request):
-        queryset = super().get_queryset(request)
+        queryset = super().get_queryset(request).select_related("user")
         return queryset.annotate(
             orders_count=Subquery(
                 Order.objects.filter(user=OuterRef("pk")).annotate(count=Count("id")).values("count")[:1]
             ),
         )
+
+    class Media:
+        js = ("admin/js/order_admin.js",)
