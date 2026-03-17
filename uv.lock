@@ -26,7 +26,7 @@ wheels = [
 ]
 
 [[package]]
-name = "itemshop"
+name = "orderspanel"
 version = "0.0.1"
 source = { editable = "." }
 dependencies = [

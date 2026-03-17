@@ -3,14 +3,10 @@ requires = ["hatchling"]
 build-backend = "hatchling.build"
 
 [project]
-name = "itemshop"
+name = "OrdersPanel"
 version = "0.0.1"
-description = "Django-based item shop project"
+description = "Django-based orders panel project"
 readme = "README.md"
-license = "MIT"
-authors = [
-    { name = "ItemShop Team" },
-]
 requires-python = ">=3.12"
 dependencies = [
     "django>=4.2,<5.0",
@@ -36,12 +32,6 @@ indent-style = "space"
 
 [tool.uv]
 resolution = "highest"
-
-[tool.pytest.ini_options]
-DJANGO_SETTINGS_MODULE = "config.settings"
-pythonpath = ["src"]
-testpaths = ["src"]
-addopts = "-q --strict-markers --disable-warnings"
 
 [tool.hatch.build.targets.wheel]
 packages = ["src/config", "src/apps"]
