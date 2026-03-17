@@ -14,6 +14,10 @@ User = get_user_model()
 
 
 class OrderCreateView(LoginRequiredMixin, CreateView):
+    """
+    Представление для создания заказа.
+    """
+
     template_name = "orders/order_create.html"
     form_class = UserOrderForm
     model = Order
@@ -27,6 +31,10 @@ class OrderCreateView(LoginRequiredMixin, CreateView):
 
 
 class OrderListView(LoginRequiredMixin, ListView):
+    """
+    Представление для списка карточек заказов.
+    """
+
     template_name = "orders/order_list.html"
     model = Order
     context_object_name = "orders"
@@ -40,17 +48,17 @@ class OrderListView(LoginRequiredMixin, ListView):
     def get_queryset(self) -> QuerySet[Order]:
         queryset = Order.objects.select_related("user")
 
-        if not is_staff_or_superuser(self.request.user):
+        if is_staff_or_superuser(self.request.user):
+            user_id = (self.request.GET.get("user") or "").strip()
+            if user_id.isdigit():
+                queryset = queryset.filter(user_id=int(user_id))
+
+        else:
             queryset = queryset.filter(user=self.request.user)
 
         status = (self.request.GET.get("status") or "").strip()
         if status in Order.OrderStatus.values:
             queryset = queryset.filter(status=status)
-
-        if is_staff_or_superuser(self.request.user):
-            user_id = (self.request.GET.get("user") or "").strip()
-            if user_id.isdigit():
-                queryset = queryset.filter(user_id=int(user_id))
 
         ordering = self.get_ordering_param()
 
@@ -101,6 +109,10 @@ class OrderListView(LoginRequiredMixin, ListView):
 
 
 class OrderDetailView(LoginRequiredMixin, DetailView):
+    """
+    Представление для карточки заказа.
+    """
+
     template_name = "orders/order_detail.html"
     model = Order
     context_object_name = "order"
@@ -115,6 +127,10 @@ class OrderDetailView(LoginRequiredMixin, DetailView):
 
 
 def orders_root_redirect(request: HttpRequest) -> HttpResponse:
+    """
+    Ручка для редиректов.
+    """
+
     if request.user.is_authenticated:
         return redirect("orders:list")
 
@@ -122,6 +138,10 @@ def orders_root_redirect(request: HttpRequest) -> HttpResponse:
 
 
 def users_autocomplete(request: HttpRequest) -> JsonResponse:
+    """
+    Ручка для поиска пользователей в фильтре.
+    """
+
     if not request.user.is_authenticated:
         return JsonResponse({"detail": "Authentication credentials were not provided."}, status=401)
 

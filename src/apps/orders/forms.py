@@ -4,11 +4,19 @@ from apps.orders.models import Order
 
 
 class OrderForm(forms.ModelForm):
+    """
+    Форма для админки.
+    """
+
     class Meta:
         model = Order
         fields = "__all__"
 
     def clean(self):
+        """
+        Главный валидационный метод формы.
+        """
+
         cleaned_data = super().clean()
         volume_type = cleaned_data.get("volume_type")
         errors: dict[str, str] = {}
@@ -21,7 +29,7 @@ class OrderForm(forms.ModelForm):
         elif volume_type == Order.OrderVolumeType.MULTIPLE:
             errors.update(self._validate_multiple(cleaned_data))
 
-        elif volume_type is not None:
+        else:
             errors["volume_type"] = "Некорректный тип объема заказа."
 
         if errors:
@@ -30,6 +38,10 @@ class OrderForm(forms.ModelForm):
         return cleaned_data
 
     def _normalize_by_volume_type(self, cleaned_data: dict, volume_type: str | None) -> None:
+        """
+        Нормализация данных в форме: очищает неиспользуемые поля.
+        """
+
         if volume_type == Order.OrderVolumeType.SINGLE:
             cleaned_data["quantity"] = 1
             cleaned_data["document"] = False
@@ -41,6 +53,10 @@ class OrderForm(forms.ModelForm):
 
     @staticmethod
     def _validate_single(cleaned_data: dict) -> dict[str, str]:
+        """
+        Валидация полей формы при выборе единичного заказа
+        """
+
         errors: dict[str, str] = {}
 
         description = (cleaned_data.get("description") or "").strip()
@@ -60,6 +76,10 @@ class OrderForm(forms.ModelForm):
 
     @staticmethod
     def _validate_multiple(cleaned_data: dict) -> dict[str, str]:
+        """
+        Валидация полей формы при выборе множественного заказа
+        """
+
         errors: dict[str, str] = {}
 
         description = (cleaned_data.get("description") or "").strip()
@@ -78,12 +98,20 @@ class OrderForm(forms.ModelForm):
         return errors
 
     def _mark_changed(self, *fields: str) -> None:
+        """
+        Отметка искусственно измененных полей.
+        """
+
         for field in fields:
             if field not in self.changed_data:
                 self.changed_data.append(field)
 
 
 class UserOrderForm(OrderForm):
+    """
+    Форма для фронта с ограниченным пулом полей.
+    """
+
     class Meta(OrderForm.Meta):
         fields = (
             "name",
