@@ -1,0 +1,87 @@
+{% extends "base.html" %}
+{% load static %}
+
+{% block title %}Список заказов{% endblock %}
+
+{% block content %}
+    <div class="d-flex flex-wrap justify-content-between gap-2 align-items-center mb-3">
+        <h1 class="h3 m-0">Заказы</h1>
+        <a class="btn btn-primary" href="{% url 'orders:create' %}">Создать заказ</a>
+    </div>
+
+    <div class="card shadow-sm mb-3">
+        <div class="card-body">
+            <form method="get" class="row g-3 align-items-end" id="orders-filter-form">
+                <div class="col-12 col-md-3">
+                    <label for="status" class="form-label">Статус</label>
+                    <select name="status" id="status" class="form-select filter-control">
+                        <option value="">Все статусы</option>
+                        {% for value, label in status_choices %}
+                            <option value="{{ value }}" {% if selected_status == value %}selected{% endif %}>{{ label }}</option>
+                        {% endfor %}
+                    </select>
+                </div>
+
+                <div class="col-12 col-md-3">
+                    <label for="ordering" class="form-label">Сортировка</label>
+                    <select name="ordering" id="ordering" class="form-select filter-control">
+                        <option value="-created_at" {% if selected_ordering == "-created_at" %}selected{% endif %}>Сначала новые</option>
+                        <option value="created_at" {% if selected_ordering == "created_at" %}selected{% endif %}>Сначала старые</option>
+                    </select>
+                </div>
+
+                {% if can_filter_by_user %}
+                    <div class="col-12 col-md-4">
+                        <label for="user-autocomplete-input" class="form-label">Заказчик</label>
+                        <div
+                            class="user-autocomplete"
+                            data-user-autocomplete
+                            data-autocomplete-url="{% url 'orders:users-autocomplete' %}"
+                        >
+                            <div class="user-autocomplete__control filter-control" data-user-autocomplete-control>
+                                <div
+                                    class="user-autocomplete__token"
+                                    data-user-autocomplete-token
+                                    {% if not selected_user %}hidden{% endif %}
+                                >
+                                    <span class="user-autocomplete__token-label" data-user-autocomplete-token-label>{{ selected_user_label }}</span>
+                                    <button
+                                        type="button"
+                                        class="user-autocomplete__token-remove"
+                                        data-user-autocomplete-remove
+                                        aria-label="Удалить выбранного заказчика"
+                                    >
+                                        ×
+                                    </button>
+                                </div>
+                            <input
+                                type="text"
+                                id="user-autocomplete-input"
+                                class="user-autocomplete__input"
+                                data-user-autocomplete-input
+                                placeholder="Начните вводить имя, username или email"
+                                autocomplete="off"
+                                value=""
+                            >
+                            </div>
+                            <input type="hidden" name="user" value="{{ selected_user }}" data-user-autocomplete-hidden>
+                            <div class="user-autocomplete__dropdown" data-user-autocomplete-dropdown hidden></div>
+                        </div>
+                    </div>
+                {% endif %}
+
+                <div class="col-12 col-md-2">
+                    <button class="btn btn-outline-light w-100" type="submit">Применить</button>
+                </div>
+            </form>
+        </div>
+    </div>
+
+    <div id="orders-list-container">
+        {% include "orders/partials/order_list_items.html" %}
+    </div>
+{% endblock %}
+
+{% block extra_js %}
+    <script src="{% static 'orders/js/order_list.js' %}"></script>
+{% endblock %}

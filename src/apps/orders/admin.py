@@ -1,5 +1,5 @@
 from django.contrib import admin
-from django.db.models import Count, OuterRef, Subquery
+from django.db.models import Count, OuterRef, Subquery, Value
 from django.utils import timezone
 
 from apps.orders.forms import OrderForm
@@ -34,6 +34,7 @@ class OrderAdmin(admin.ModelAdmin):
         "created_at",
         "ready_at",
     )
+    list_editable = ("status",)
     autocomplete_fields = ("user",)
     readonly_fields = (
         "created_at",
@@ -115,7 +116,11 @@ class OrderAdmin(admin.ModelAdmin):
         queryset = super().get_queryset(request).select_related("user")
         return queryset.annotate(
             orders_count=Subquery(
-                Order.objects.filter(user=OuterRef("pk")).annotate(count=Count("id")).values("count")[:1]
+                Order.objects.filter(user_id=OuterRef("user_id"))
+                .annotate(tmp=Value(1))
+                .values("tmp")
+                .annotate(count=Count("id"))
+                .values("count")[:1]
             ),
         )
 

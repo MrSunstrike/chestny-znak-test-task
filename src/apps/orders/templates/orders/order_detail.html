@@ -1,0 +1,71 @@
+{% extends "base.html" %}
+
+{% block title %}Заказ #{{ order.id }}{% endblock %}
+
+{% block content %}
+    <div class="order-detail-header d-flex justify-content-between align-items-start gap-3 mb-3">
+        <div>
+            <h1 class="h3 m-0">Заказ #{{ order.id }}</h1>
+            <div class="order-created-at-meta">от: {{ order.created_at|date:"d.m.Y H:i" }}</div>
+        </div>
+        <a href="{% url 'orders:list' %}" class="btn btn-outline-light btn-sm flex-shrink-0">К списку</a>
+    </div>
+
+    <div class="card shadow-sm order-detail-card">
+        <div class="card-body order-detail-card__body">
+            <section class="order-detail-summary" aria-label="Краткая информация по заказу">
+                <div class="order-detail-summary__item">
+                    <div class="order-detail-summary__label">Статус</div>
+                    <div class="order-detail-summary__value">
+                        <span class="badge order-status-badge status--{{ order.status }}">{{ order.get_status_display }}</span>
+                    </div>
+                </div>
+                <div class="order-detail-summary__item">
+                    <div class="order-detail-summary__label">Дата готовности</div>
+                    <div class="order-detail-summary__value">{{ order.ready_at|date:"d.m.Y H:i"|default:"—" }}</div>
+                </div>
+            </section>
+
+            <section class="order-detail-section" aria-label="Метаданные заказа">
+                <h2 class="order-detail-section__title">Параметры заказа</h2>
+                <dl class="order-detail-meta mb-0">
+                    <div class="order-detail-meta__row">
+                        <dt>Наименование</dt>
+                        <dd>{{ order.name }}</dd>
+                    </div>
+                    <div class="order-detail-meta__row">
+                        <dt>Тип/объём</dt>
+                        <dd>{{ order.get_volume_type_display }}</dd>
+                    </div>
+                    <div class="order-detail-meta__row">
+                        <dt>Количество</dt>
+                        <dd>{{ order.quantity }}</dd>
+                    </div>
+                </dl>
+            </section>
+
+            <section class="order-detail-section" aria-label="Контент заказа">
+                <h2 class="order-detail-section__title">Содержимое</h2>
+                <dl class="order-detail-meta mb-0">
+                    {% if order.volume_type == "single" %}
+                        <div class="order-detail-meta__row">
+                            <dt>Описание</dt>
+                            <dd>{{ order.description|default:"—" }}</dd>
+                        </div>
+                    {% elif order.volume_type == "multiple" %}
+                        <div class="order-detail-meta__row">
+                            <dt>Документ</dt>
+                            <dd>
+                                {% if order.document %}
+                                    <a href="{{ order.document.url }}" target="_blank" rel="noopener">Скачать документ</a>
+                                {% else %}
+                                    —
+                                {% endif %}
+                            </dd>
+                        </div>
+                    {% endif %}
+                </dl>
+            </section>
+        </div>
+    </div>
+{% endblock %}
