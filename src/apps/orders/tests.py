@@ -1,3 +1,4 @@
+from django.conf import settings
 from django.test import TestCase, Client
 from django.contrib.auth import get_user_model
 from django.contrib.admin import AdminSite
@@ -161,6 +162,31 @@ class OrderFormTest(TestCase):
         self.assertFalse(form.is_valid())
         self.assertIn("document", form.errors)
         self.assertEqual(form.errors["document"][0], "Для множественного заказа необходимо прикрепить документ.")
+
+    def test_order_form_multiple_validation_document_too_large(self):
+        """
+        Тест валидации формы для множественного заказа с документом больше 5 МБ.
+        """
+
+        large_document = SimpleUploadedFile(
+            name="large_document.txt",
+            content=b"a" * (settings.MAX_DOCUMENT_SIZE_BYTES + 1),
+            content_type="text/plain",
+        )
+
+        form_data = {
+            "user": self.user.id,
+            "name": "Test Order",
+            "volume_type": Order.OrderVolumeType.MULTIPLE,
+            "quantity": 5,
+            "status": Order.OrderStatus.CREATED,
+        }
+
+        form = OrderForm(data=form_data, files={"document": large_document})
+
+        self.assertFalse(form.is_valid())
+        self.assertIn("document", form.errors)
+        self.assertEqual(form.errors["document"][0], "Размер документа не должен превышать 5 МБ.")
 
     def test_order_form_multiple_validation_wrong_quantity(self):
         """

@@ -1,4 +1,5 @@
 from django import forms
+from django.conf import settings
 
 from apps.orders.models import Order
 
@@ -91,6 +92,9 @@ class OrderForm(forms.ModelForm):
 
         if not document:
             errors["document"] = "Для множественного заказа необходимо прикрепить документ."
+
+        elif getattr(document, "size", 0) > settings.MAX_DOCUMENT_SIZE_BYTES:
+            errors["document"] = f"Размер документа не должен превышать {settings.MAX_DOCUMENT_SIZE_MB} МБ."
 
         if quantity is None or quantity <= 1:
             errors["quantity"] = "Для множественного заказа количество должно быть больше 1."
